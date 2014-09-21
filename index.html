@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Hello Collaboration</title>
+  </head>
+
+  <body>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+  <script>
+    var socket = io();
+    socket.on('update', function(buddies){
+      render(buddies);
+    });
+
+    var buddyImage = new Image();
+    buddyImage.src = "http://wiki.sugarlabs.org/images/thumb/b/bb/XO_buddy.png/40px-XO_buddy.png";
+
+    var canvas = document.createElement("canvas");
+    canvas.width = 256;
+    canvas.height = 256;
+    document.body.appendChild(canvas);
+
+    var context = canvas.getContext("2d");
+    var render = function (buddies) {
+      console.log("received update")
+      context.clearRect (0 , 0, 256, 256);
+
+      for (var id in buddies){
+        console.log("buddy %s at %d,%d", buddies[id]["name"], buddies[id]["x"], buddies[id]["y"]);
+        context.fillText(buddies[id]["name"], buddies[id]["x"]-10, buddies[id]["y"]-10);
+        context.drawImage(buddyImage, buddies[id]["x"], buddies[id]["y"], buddyImage.width*0.50, buddyImage.height*0.50); 
+      }
+    };
+
+  </script>
+
+  </body>
+</html>
