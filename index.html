@@ -10,10 +10,60 @@
   <script src="/socket.io/socket.io.js"></script>
   <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
   <script>
+    var id = "";
+    var buddies = {};
     var socket = io();
-    socket.on('update', function(buddies){
-      render(buddies);
+
+    socket.on("initialized", function(_id, _buddies){
+        console.log("initialized");
+        id = _id;
+        buddies = _buddies;
+        render()
     });
+
+    socket.on("added", function(buddy){
+      console.log("added");
+      buddies[buddy["id"]] = buddy;
+      render();
+    });
+
+    socket.on("updated", function(buddy){
+       console.log("updated");
+       buddies[buddy["id"]] = buddy;
+       render();
+    });
+
+    socket.on("removed", function(id){
+       console.log("removed");
+       delete buddies[id];
+       render();
+    });
+
+    var speed  = 10;
+    var setPosition = function(e) {
+      if (id == null) {
+        return;
+      };
+
+      var buddy = buddies[id];
+
+      if (38 == e.keyCode) {
+        buddy["y"] -= speed;
+      }
+      if (40 == e.keyCode) {
+        buddy["y"] += speed;
+      }
+      if (37 == e.keyCode) {
+        buddy["x"] -= speed;
+      }
+      if (39 == e.keyCode) {
+        buddy["x"] += speed;
+      }
+
+      render()
+      socket.emit("update", { "x": buddy["x"], "y": buddy["y"]});      
+    };
+    addEventListener("keydown", setPosition, false);
 
     var buddyImage = new Image();
     buddyImage.src = "http://wiki.sugarlabs.org/images/thumb/b/bb/XO_buddy.png/40px-XO_buddy.png";
@@ -24,8 +74,8 @@
     document.body.appendChild(canvas);
 
     var context = canvas.getContext("2d");
-    var render = function (buddies) {
-      console.log("received update")
+    var render = function () {
+      console.log("rendering")
       context.clearRect (0 , 0, 256, 256);
 
       for (var id in buddies){
@@ -35,7 +85,18 @@
       }
     };
 
+    var setName = function () {
+      name = document.getElementById('name').value;
+      buddies[id]["name"] = name;
+      render()
+      socket.emit("update", {"name": name});
+    }
+
   </script>
+
+  <p>
+  <input type="text" name="name" class="enter" value="" id="name"/>
+  <input type="button" value="send" onclick="setName();"/>
 
   </body>
 </html>
